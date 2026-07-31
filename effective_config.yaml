@@ -1,0 +1,89 @@
+seed: 123
+data:
+  n_channels: 3
+  batch_size: 1
+  prep_files:
+    train_data: /project/anhlt/0607/jnf_mamba_experiment/paper_reproduction/data_original_var_pos_parallel_sp1/8k/prep_mix_ch3_sp1_var_target.hdf5
+    train_meta: /project/anhlt/0607/jnf_mamba_experiment/paper_reproduction/data_original_var_pos_parallel_sp1/8k/prep_mix_meta_ch3_sp1_var_target.json
+    val_data: /project/anhlt/0607/jnf_mamba_experiment/paper_reproduction/data_original_var_pos_parallel_sp1/8k/prep_mix_ch3_sp1_var_target.hdf5
+    val_meta: /project/anhlt/0607/jnf_mamba_experiment/paper_reproduction/data_original_var_pos_parallel_sp1/8k/prep_mix_meta_ch3_sp1_var_target.json
+  dry_target: true
+  snr_range: []
+  meta_frame_length: 24000
+  stft_length_samples: 256
+  stft_shift_samples: 128
+  n_workers: 4
+  fs: 8000
+network:
+  n_channels: 3
+  n_cond_emb_dim: 180
+  freq_hidden: 128
+  narrow_hidden: 256
+  subband_hidden: 384
+  fullband_hidden: 128
+  projection_size: 64
+  subband_noisy_radius: 3
+  subband_embedding_radius: 2
+  temporal_context:
+  - 5
+  - 5
+  output_activation: tanh
+  reference_channel: 0
+  bidirectional: true
+  mamba_d_state: 16
+  mamba_d_conv: 4
+  mamba_expand: 2
+  doa_fourier_harmonics: 4
+  doa_condition_dim: 128
+experiment:
+  learning_rate: 0.001
+  weight_decay: 0
+  loss_alpha: 10
+  cirm_comp_K: 1
+  cirm_comp_C: 1
+  reference_channel: 0
+  n_cond_emb_dim: 180
+  condition_enc_type: arange
+  cond_arange_params:
+  - -180
+  - 180
+  - 2
+  scheduler_type: MultiStepLR
+  scheduler_params:
+    milestones:
+    - 50
+    - 100
+    - 150
+    - 200
+    - 250
+    - 300
+    - 350
+    - 400
+    gamma: 0.75
+  loss_type: l1
+training:
+  max_epochs: 500
+  gradient_clip_val: 0
+  gradient_clip_algorithm: value
+  strategy: ddp
+  accelerator: gpu
+  devices: 3
+logging:
+  tb_log_dir: ../logs/tb_logs
+  ckpt_dir: ../logs/ckpts
+derived:
+  model: MCMamba-SSF-Circular-FiLM
+  paper: https://arxiv.org/abs/2409.10376
+  conditioning_reference: https://arxiv.org/abs/2605.18442
+  adaptation: Published offline MCMamba stages with circular Fourier DoA encoding
+    and post-LayerNorm FiLM in both spatial stages
+  micro_batch_global_size: 3
+  accumulate_grad_batches: 4
+  effective_global_batch_size: 12
+  sample_rate: 8000
+  train_n_interferers: 1
+  train_total_speakers: 2
+  data_profile: upstream_data_gen_var_pos
+  steering: Four-harmonic circular DoA encoding drives zero-initialized FiLM scale/bias
+    in full-band and narrow-band spatial Bi-Mamba
+  comparison_control: Same SSF data, loss, optimizer, and scheduler as McNet-SSF
